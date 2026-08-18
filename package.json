@@ -5,6 +5,9 @@
   "imports": {
     "#/*": "./src/*"
   },
+  "volta": {
+    "node": "24.13.0"
+  },
   "scripts": {
     "dev": "vite dev",
     "generate-routes": "tsr generate",
