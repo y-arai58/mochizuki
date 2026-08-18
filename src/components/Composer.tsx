@@ -12,6 +12,7 @@ type SR = {
   continuous: boolean;
   start: () => void;
   stop: () => void;
+  onstart: (() => void) | null;
   onresult: ((e: any) => void) | null;
   onerror: ((e: any) => void) | null;
   onend: (() => void) | null;
@@ -23,6 +24,7 @@ export function Composer({ onSubmit }: Props) {
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState("");
   const [voiceOK, setVoiceOK] = useState(true);
+  const [voiceNote, setVoiceNote] = useState("");
   const [busy, setBusy] = useState(false);
   const recRef = useRef<SR | null>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -31,7 +33,18 @@ export function Composer({ onSubmit }: Props) {
 
   useEffect(() => {
     const w = window as any;
-    if (!(w.SpeechRecognition || w.webkitSpeechRecognition)) setVoiceOK(false);
+    if (!(w.SpeechRecognition || w.webkitSpeechRecognition)) {
+      setVoiceOK(false);
+      setVoiceNote("このブラウザでは音声が使えません。SafariかChromeで開いてください");
+    }
+
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS|OPiOS|Brave/.test(navigator.userAgent);
+    if (isIos && !isSafari) {
+      setVoiceOK(false);
+      setVoiceNote("iPhoneではSafariで開いてください");
+    }
+
     return () => {
       try {
         recRef.current?.stop();
@@ -49,11 +62,21 @@ export function Composer({ onSubmit }: Props) {
   const startVoice = () => {
     const w = window as any;
     const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
-    if (!Ctor) return setVoiceOK(false);
+    if (!Ctor) {
+      setVoiceOK(false);
+      setVoiceNote("このブラウザでは音声が使えません。SafariかChromeで開いてください");
+      return;
+    }
     const rec: SR = new Ctor();
     rec.lang = "ja-JP";
     rec.interimResults = true;
-    rec.continuous = true;
+    // モバイルでは連続認識が不安定なため、ひとことごとに確定する。
+    rec.continuous = false;
+    rec.onstart = () => {
+      setListening(true);
+      setInterim("");
+      setVoiceNote("");
+    };
     rec.onresult = (e: any) => {
       let fin = "";
       let itr = "";
@@ -68,19 +91,32 @@ export function Composer({ onSubmit }: Props) {
     rec.onerror = (e: any) => {
       setListening(false);
       setInterim("");
-      if (e.error === "not-allowed" || e.error === "service-not-allowed") setVoiceOK(false);
+      if (e.error === "not-allowed") {
+        setVoiceOK(false);
+        setVoiceNote("マイクの許可が必要です。ブラウザのサイト設定を確認してください");
+      } else if (e.error === "service-not-allowed") {
+        setVoiceOK(false);
+        setVoiceNote("このブラウザでは音声が使えません。SafariかChromeで開いてください");
+      } else if (e.error === "network") {
+        setVoiceNote("通信できず、音声を文字にできませんでした");
+      } else if (e.error === "no-speech") {
+        setVoiceNote("声を聞き取れませんでした。もう一度試してください");
+      } else {
+        setVoiceNote("音声入力を始められませんでした。もう一度試してください");
+      }
     };
     rec.onend = () => {
       setListening(false);
       setInterim("");
     };
     try {
-      rec.start();
       recRef.current = rec;
-      setListening(true);
+      setVoiceNote("");
+      rec.start();
       setInterim("");
     } catch {
-      setVoiceOK(false);
+      setListening(false);
+      setVoiceNote("音声入力を始められませんでした。もう一度試してください");
     }
   };
 
@@ -177,10 +213,8 @@ export function Composer({ onSubmit }: Props) {
             {listening
               ? interim || "そのままどうぞ"
               : !voiceOK
-                ? "音声が使えません。鉛筆から書けます"
-                : open
-                  ? "書き終えたら そそぐ"
-                  : "話す、または 書く"}
+                ? voiceNote || "音声が使えません。鉛筆から書けます"
+                : voiceNote || (open ? "書き終えたら そそぐ" : "話す、または 書く")}
           </div>
         </div>
       </div>
