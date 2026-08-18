@@ -4,45 +4,39 @@
 
 ## いまの状態
 
-**未実行の状態でリポジトリに置かれたコードです。まだ一度もビルド・起動していません。** 構文チェックは通していますが、実際に動かしたことはありません。最初のタスクは「動かすこと」です。
+**起動・ビルド済みです。** D1のスキーマはローカル・リモートともに適用済みで、2人用のID・パスワードログインもローカルで確認済みです。公開版には本番のSecret設定とデプロイが必要です。
 
 含まれているもの / 含まれていないもの:
 
 | | 状態 |
 |---|---|
 | 画面（2ルート）・コンポーネント・月相ロジック | あり |
-| サーバー関数（D1 + Access） | あり |
+| サーバー関数（D1 + 2人用ログイン） | あり |
 | `schema.sql` / `wrangler.jsonc` / `vite.config.ts` | あり |
 | ロゴ一式・アイコン・manifest | あり |
-| `package.json` / `tsconfig.json` / `src/router.tsx` / `routeTree.gen.ts` | **なし**（雛形から持ってくる） |
-| D1データベース本体・Accessの設定 | **なし**（手動で作る） |
+| `package.json` / `tsconfig.json` / `src/router.tsx` / `routeTree.gen.ts` | あり |
+| D1データベース本体 | あり |
 
 ## 最初にやること
 
 ```bash
-# 1. 別の場所に雛形を作る
-npm create cloudflare@latest -- _scaffold --framework=tanstack-start
+# 1. 依存関係を入れる
+npm install
 
-# 2. 雛形から package.json / tsconfig.json / src/router.tsx などを持ってくる
-#    src/routes/ と vite.config.ts と wrangler.jsonc はこのリポジトリのものを使う
-
-# 3. package.json の scripts を README の通りにする
-
-# 4. D1を作って database_id を wrangler.jsonc に貼る
-npx wrangler d1 create mochizuki
+# 2. ローカルD1にスキーマを適用する
 npm run db:local
 npm run cf-typegen
 
-# 5. .dev.vars を作る（DEV_EMAIL=自分のメール）
+# 3. .dev.vars を作る。2人分のID・パスワードと32文字以上のSESSION_SECRETを設定する
 cp .dev.vars.example .dev.vars
 
-# 6. 起動
+# 4. 起動
 npm run dev
 ```
 
 **受け入れ条件**: `/` を開くと新月の月が表示され、鉛筆アイコンから1件記録すると月がすこし満ちて目盛りが1つ点る。`/year` に今月のセルが表示される。`npm run build` が型エラーなしで通る。
 
-ここが通ったら、Accessを設定してデプロイ（README手順4・5）。
+ここが通ったら、Cloudflare Dashboardで `AUTH_USERS` と `SESSION_SECRET` をSecretとして設定してデプロイ（README手順3・4）。
 
 ## 詰まりそうな箇所
 
@@ -70,14 +64,14 @@ TanStack Startはバージョン間の差が大きく、以下は書き換えが
 
 **なぜロゴが満月ではないか** — 満月＝ただの円で、16pxでは識別できない。名前が到達点、マークが過程という関係にしました。
 
-**なぜ「あいことば」が無いか** — 当初は共有グループを合言葉で作る設計でしたが、推測されるリスクがあり、Cloudflare Accessの許可リストに置き換えました。共有の月はサイトに1つだけ存在し、Accessで許可された人が同じ月を使います。
+**なぜ「あいことば」が無いか** — 当初は共有グループを合言葉で作る設計でしたが、推測されるリスクがあるため、2人それぞれのID・パスワードでログインする方式にしました。共有の月はサイトに1つだけ存在し、登録済みの2人が同じ月を使います。
 
 **なぜ `ym` をクライアントが送るか** — 月の境目をユーザーのローカル時刻で決めるため。UTC集計だと月末深夜の記録が前月に入ります。
 
 ## 未着手のタスク（優先順）
 
-1. **動かす**（上記）
-2. **Accessの設定とデプロイ** — これをやるまで公開してはいけない
+1. **本番Secretの設定とデプロイ** — これをやるまで公開してはいけない
+2. **ログイン試行のレート制限** — 公開URLなので、必要になればDurable Objects等で追加を検討する
 3. **入力検証をZodに** — 現在ハンドラ内で手検証。`createServerFn` の検証APIの現行名を確認してから置き換える
 4. **エラー表示の整備** — 現在は画面下部のトーストのみ。ネットワーク断や401の区別ができていない
 5. **Service Worker** — オフラインでも開けるようにする。記録の送信キューまで作るかは要検討
@@ -95,11 +89,9 @@ TanStack Startはバージョン間の差が大きく、以下は書き換えが
 ```
 AGENTS.md と HANDOFF.md を読んでください。
 
-このリポジトリは TanStack Start + Cloudflare Workers + D1 のアプリですが、
-package.json と tsconfig.json が無く、まだ一度も起動していません。
-
+このリポジトリは TanStack Start + Cloudflare Workers + D1 のアプリです。
 HANDOFF.md の「最初にやること」に従って、
-npm run dev が起動し npm run build が型エラーなしで通る状態にしてください。
+npm run dev が起動し npm run build が型エラーなしで通る状態を確認してください。
 
 TanStack Start のAPIはバージョン差が大きいので、
 エラーが出たら公式ドキュメントの現行版を確認し、

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Mark } from "../components/Mark";
 import styles from "../lib/styles.css?url";
 import { SANS, T, textLink, wrap } from "../lib/theme";
+import { logout } from "../server/entries";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -29,14 +30,19 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  const leave = async () => {
+    await logout();
+    window.location.assign("/");
+  };
+
   return (
-    <RootDocument>
+    <RootDocument onLogout={leave}>
       <Outlet />
     </RootDocument>
   );
 }
 
-function RootDocument({ children }: { children: ReactNode }) {
+function RootDocument({ children, onLogout }: { children: ReactNode; onLogout: () => Promise<void> }) {
   return (
     <html lang="ja">
       <head>
@@ -81,6 +87,9 @@ function RootDocument({ children }: { children: ReactNode }) {
             >
               THE YEAR
             </Link>
+            <button type="button" onClick={() => void onLogout()} style={{ ...textLink(false), border: "none", background: "none", padding: 0 }}>
+              LOG OUT
+            </button>
           </div>
         </header>
         {children}

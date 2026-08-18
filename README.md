@@ -76,9 +76,9 @@
 | フレームワーク | TanStack Start（React + Vite） |
 | 実行環境 | Cloudflare Workers（`@cloudflare/vite-plugin`） |
 | 保存 | Cloudflare D1（SQLite） |
-| 本人確認 | Cloudflare Access |
+| 本人確認 | アプリ内のID・パスワード（Cloudflare Workers Secret） |
 
-**ログイン処理は書いていません。** サイト全体を Cloudflare Access の後ろに置き、Access が付ける `Cf-Access-Authenticated-User-Email` ヘッダで本人を特定します。許可リストに入れたメールアドレス以外はページに到達できません。
+2人ぶんのID・パスワードは Workers Secret の `AUTH_USERS` にだけ保管します。ログイン後は署名付き・HTTP Only Cookieで本人を識別します。Cloudflare Access / Zero Trust は不要です。
 
 SSRなので、最初のHTMLの時点で月は今月ぶんの数だけ満ちています。ルートのローダーが `monthCounts` と `listEntries` を並行で呼び、クライアント側の再取得を待たずに描画されます。
 
@@ -100,7 +100,7 @@ SSRなので、最初のHTMLの時点で月は今月ぶんの数だけ満ちて�
 │   │   ├── styles.css      アニメーション定義
 │   │   └── useNarrow.ts    構図の切り替え
 │   └── server/
-│       └── entries.ts      server functions（D1・Access）
+│       └── entries.ts      server functions（D1・ログイン）
 ├── brand/                  ロゴ一式と使用ルール
 ├── public/                 アイコン・manifest
 ├── schema.sql
@@ -110,7 +110,7 @@ SSRなので、最初のHTMLの時点で月は今月ぶんの数だけ満ちて�
 
 ### サーバー関数
 
-すべて `authMiddleware` を通り、`context.email` に本人が入ります。
+記録に関する関数はすべて `authMiddleware` を通り、`context.email` に本人が入ります。ログイン用の `getSession` / `login` / `logout` だけは例外です。
 
 | 関数 | 用途 |
 |---|---|
@@ -119,8 +119,9 @@ SSRなので、最初のHTMLの時点で月は今月ぶんの数だけ満ちて�
 | `monthCounts` | 月ごとの件数（`GROUP BY ym`） |
 | `addEntry` | 記録の追加。追加後の件数を返す |
 | `deleteEntry` | 自分の記録だけ削除 |
+| `getSession` / `login` / `logout` | ログイン状態の取得・開始・終了 |
 
-`scope=shared` は Access で許可した全員が共有する一つの月、`solo` は本人だけの月です。
+`scope=shared` は登録した2人が共有する一つの月、`solo` は本人だけの月です。
 
 月の境目はタイムゾーンで変わるため、記録時にクライアントのローカル月（`YYYY-MM`）を `ym` として保存し、集計はこの列で行います。UTCで集計すると月末深夜の記録が前月に入ってしまいます。
 
@@ -128,33 +129,9 @@ SSRなので、最初のHTMLの時点で月は今月ぶんの数だけ満ちて�
 
 ## セットアップ
 
-雛形はCloudflare公式のコマンドで作るのが確実です。TanStack Startは構成が変わりやすいため、`package.json` と `tsconfig.json` はこのリポジトリに含めていません。
+このリポジトリには実行に必要な設定一式が含まれています。
 
-### 1. 雛形を作る
-
-```bash
-npm create cloudflare@latest -- mochizuki --framework=tanstack-start
-```
-
-生成された `src/routes/` `vite.config.ts` `wrangler.jsonc` を、このリポジトリの同名ファイルで置き換えます。`src/router.tsx` など雛形が生成したものはそのまま残してください。
-
-`package.json` の scripts は次の形にします。
-
-```json
-{
-  "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "preview": "vite preview",
-    "deploy": "npm run build && wrangler deploy",
-    "cf-typegen": "wrangler types",
-    "db:local": "wrangler d1 execute mochizuki --local --file=./schema.sql",
-    "db:remote": "wrangler d1 execute mochizuki --remote --file=./schema.sql"
-  }
-}
-```
-
-### 2. D1 を作る
+### 1. D1 を作る
 
 ```bash
 npx wrangler d1 create mochizuki
@@ -168,14 +145,27 @@ npm run db:remote   # 本番用
 npm run cf-typegen  # D1Database などの型を生成
 ```
 
-### 3. ローカルで動かす
+### 2. ローカルで動かす
 
 ```bash
-cp .dev.vars.example .dev.vars   # DEV_EMAIL を自分のメールに書き換える
+cp .dev.vars.example .dev.vars
 npm run dev
 ```
 
+`.dev.vars` の2組の `id` / `email` / `name` / `password` と、32文字以上の `SESSION_SECRET` を自分用の値に変更します。このファイルは秘密情報なのでコミットしません。
+
 `@cloudflare/vite-plugin` が開発サーバー上でWorkersランタイムとD1を再現するので、`vite dev` のままバインディングが使えます。
+
+### 3. 本番のログイン情報を設定する
+
+Cloudflare Dashboard で **Workers & Pages → mochizuki → Settings → Variables and Secrets** を開き、どちらも **Secret** として追加します。
+
+| 名前 | 値 |
+|---|---|
+| `AUTH_USERS` | `[{"id":"user1","email":"user1@example.com","name":"名前1","password":"十分に長いパスワード"},{"id":"user2","email":"user2@example.com","name":"名前2","password":"十分に長いパスワード"}]` |
+| `SESSION_SECRET` | 32文字以上のランダムな文字列 |
+
+ID・メールアドレスは2人で重複させません。値をこのチャットやGitHubに貼らないでください。
 
 ### 4. デプロイ
 
@@ -186,18 +176,9 @@ npm run deploy
 
 `*.workers.dev` のサブドメイン、または独自ドメインに出ます。GitHub連携（Workers Builds）にすれば push ごとの自動デプロイもできます。
 
-### 5. Cloudflare Access をかける（必須）
-
-1. Zero Trust → Access → Applications → Add an application → Self-hosted
-2. Application domain にデプロイ先のドメインを指定
-3. Policy: Action `Allow`、Include に `Emails` を選び、使う人のメールアドレスを列挙
-4. 認証方法に One-time PIN を有効にする（パスワード管理が不要になります）
-
-Access をかけない状態ではサーバー関数がエラーを返し、記録の読み書きができません。逆に言えば、**Access を切ると誰でもページを開ける状態になる**ため、公開前に必ず設定してください。`DEV_EMAIL` を本番の環境変数に設定してしまうと認証が無効になります。
-
 ## 費用
 
-Cloudflare の無料枠で収まります。Workers は1日10万リクエスト、D1 は1日500万行読み取り・10万行書き込み・5GB、Access は50ユーザーまで無料。2人で1日数十リクエストなら枠の0.1%にも届きません。
+Cloudflare の無料枠で収まります。Workers は1日10万リクエスト、D1 は1日500万行読み取り・10万行書き込み・5GBです。2人で1日数十リクエストなら枠の0.1%にも届きません。
 
 **無料プランは上限を超えても自動課金されず、その日は止まるだけです。** 課金が始まるのは自分で有料プラン（Workers Paid・月5ドル）を契約したときだけ。ただし有料に上げた後は超過分が自動請求されます。数字は変わることがあるので、始める前に公式の料金ページで確認してください。
 

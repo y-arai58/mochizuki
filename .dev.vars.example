@@ -1,2 +1,4 @@
-# ローカル開発時だけ本人を偽装する。本番の環境変数には絶対に設定しないこと
-DEV_EMAIL=you@example.com
+# ローカル専用の2人ぶんのログイン情報。本番はWorkers Secretに設定する。
+AUTH_USERS=[{"id":"yui","email":"yui@example.com","name":"ゆい","password":"local-password-1"},{"id":"haru","email":"haru@example.com","name":"はる","password":"local-password-2"}]
+# 32文字以上のランダムな文字列に置き換える。
+SESSION_SECRET=replace-with-a-random-string-at-least-32-characters

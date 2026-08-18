@@ -8,7 +8,7 @@
 
 ## スタック
 
-TanStack Start（React + Vite） / Cloudflare Workers / D1 / Cloudflare Access。TypeScript。
+TanStack Start（React + Vite） / Cloudflare Workers / D1 / Workers Secretによる2人用ログイン。TypeScript。
 
 **Cloudflare Pagesは使わない。** Workersへデプロイする。`wrangler.jsonc` の `main` は `@tanstack/react-start/server-entry`。
 
@@ -29,8 +29,8 @@ npm run db:remote    # 本番D1にschema.sqlを流す
 
 ### セキュリティ
 
-- 認証は Cloudflare Access に依存している。`src/server/entries.ts` の `authMiddleware` を経由しないサーバー関数を追加してはならない。
-- `DEV_EMAIL` はローカル専用のフォールバック。**本番の環境変数に設定する提案をしてはならない。** これを設定すると認証が無効化される。
+- 認証は `AUTH_USERS` と `SESSION_SECRET` の Workers Secret に依存している。記録を読む・書くサーバー関数は `src/server/entries.ts` の `authMiddleware` を必ず経由する。例外はログイン状態の取得・開始・終了に限る。
+- 秘密情報は `.dev.vars` と Cloudflare Workers Secret だけに置く。`AUTH_USERS`、`SESSION_SECRET`、実際のパスワードをソース・Git・ログに入れない。
 - `.dev.vars` をコミットしない。
 - 記録の削除は本人のものだけ（`author_email` の一致を必須にする）。この条件を外さない。
 
@@ -100,4 +100,4 @@ APIが変わりやすい。以下は動作確認が必要な箇所。
 - `createServerFn` の入力検証は現在ハンドラ内で手検証している。`.inputValidator` / `.validator` の名前がバージョンで異なるため意図的に使っていない
 - `getRequestHeader` は `@tanstack/react-start/server` から。`request`オブジェクトを引数で受け取る古い書き方は使わない
 - Cloudflareバインディングは `import { env } from "cloudflare:workers"`
-- `package.json` と `tsconfig.json` はこのリポジトリに含めていない（バージョン固定を避けるため）。`npm create cloudflare@latest -- mochizuki --framework=tanstack-start` の生成物を使う
+- Node.js は `package.json` の Volta設定（24.13.0）に合わせる

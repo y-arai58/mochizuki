@@ -6,6 +6,9 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
   "observability": { "enabled": true },
+  "secrets": {
+    "required": ["AUTH_USERS", "SESSION_SECRET"]
+  },
 
   // npx wrangler d1 create mochizuki の出力を貼る
   "d1_databases": [

@@ -1,11 +1,12 @@
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { EntryRow, Eyebrow } from "../components/EntryRow";
+import { LoginForm } from "../components/LoginForm";
 import { MoonDisc } from "../components/MoonDisc";
 import { illum, phaseName } from "../lib/moon";
 import { SANS, SERIF, T, textLink, wrap } from "../lib/theme";
 import { useNarrow } from "../lib/useNarrow";
 import type { Scope } from "../server/entries";
-import { deleteEntry, getMe, listEntries, monthCounts } from "../server/entries";
+import { deleteEntry, getMe, getSession, listEntries, monthCounts } from "../server/entries";
 
 type Search = { scope: Scope; year: number; month?: number };
 
@@ -23,6 +24,8 @@ export const Route = createFileRoute("/year")({
   },
   loaderDeps: ({ search }) => search,
   loader: async ({ deps: { scope, year, month } }) => {
+    const session = await getSession();
+    if (!session.user) return { session, me: null, counts: {}, picked: [] };
     const [me, counts, picked] = await Promise.all([
       getMe(),
       monthCounts({ data: { scope } }),
@@ -30,16 +33,20 @@ export const Route = createFileRoute("/year")({
         ? listEntries({ data: { scope, ym: `${year}-${String(month).padStart(2, "0")}`, limit: 200 } })
         : Promise.resolve({ entries: [] }),
     ]);
-    return { me, counts: counts.counts, picked: picked.entries };
+    return { session, me, counts: counts.counts, picked: picked.entries };
   },
   component: TheYear,
 });
 
 function TheYear() {
-  const { me, counts, picked } = Route.useLoaderData();
-  const { scope, year, month } = Route.useSearch();
+  const data = Route.useLoaderData();
   const router = useRouter();
+  const { scope, year, month } = Route.useSearch();
   const narrow = useNarrow();
+
+  if (!data.me) return <LoginForm configured={data.session.configured} onLoggedIn={() => router.invalidate()} />;
+
+  const { me, counts, picked } = data;
 
   const now = new Date();
   const curY = now.getFullYear();

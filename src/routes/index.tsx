@@ -1,13 +1,14 @@
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Composer } from "../components/Composer";
 import { EntryRow, Eyebrow } from "../components/EntryRow";
+import { LoginForm } from "../components/LoginForm";
 import { Moonscape } from "../components/Moonscape";
 import { FULL, phaseName, ymKey } from "../lib/moon";
 import { SERIF, T, lineInput, textLink, wrap } from "../lib/theme";
 import { useNarrow } from "../lib/useNarrow";
 import type { Scope } from "../server/entries";
-import { addEntry, deleteEntry, getMe, listEntries, monthCounts, setName } from "../server/entries";
+import { addEntry, deleteEntry, getMe, getSession, listEntries, monthCounts, setName } from "../server/entries";
 
 type Search = { scope: Scope };
 
@@ -17,26 +18,36 @@ export const Route = createFileRoute("/")({
   }),
   loaderDeps: ({ search: { scope } }) => ({ scope }),
   loader: async ({ deps: { scope } }) => {
+    const session = await getSession();
+    if (!session.user) return { session, me: null, counts: {}, entries: [] };
     const [me, counts, entries] = await Promise.all([
       getMe(),
       monthCounts({ data: { scope } }),
       listEntries({ data: { scope, limit: 60 } }),
     ]);
-    return { me, counts: counts.counts, entries: entries.entries };
+    return { session, me, counts: counts.counts, entries: entries.entries };
   },
   component: ThisMoon,
 });
 
 function ThisMoon() {
-  const { me, counts, entries } = Route.useLoaderData();
-  const { scope } = Route.useSearch();
+  const data = Route.useLoaderData();
   const router = useRouter();
-  const narrow = useNarrow();
+  const { scope } = Route.useSearch();
 
+  const narrow = useNarrow();
   const [seq, setSeq] = useState(0);
   const [note, setNote] = useState("");
-  const [nameDraft, setNameDraft] = useState(me.name);
+  const [nameDraft, setNameDraft] = useState(data.me?.name ?? "");
   const [showAll, setShowAll] = useState(false);
+
+  useEffect(() => {
+    if (data.me) setNameDraft(data.me.name);
+  }, [data.me]);
+
+  if (!data.me) return <LoginForm configured={data.session.configured} onLoggedIn={() => router.invalidate()} />;
+
+  const { me, counts, entries } = data;
 
   const now = new Date();
   const ym = ymKey(now);
