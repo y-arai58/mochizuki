@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" role="img" aria-label="望月">
+  <circle cx="48" cy="48" r="22" fill="#54677A"/>
+  <path d="M 48 26 A 22 22 0 0 1 48 70 A 9.68 22 0 0 1 48 26 Z" fill="#F7F0DE"/>
+  <circle cx="48" cy="48" r="22" fill="none" stroke="#2F3439" stroke-width="0.9" opacity=".5"/>
+  <circle cx="48.00" cy="20.00" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="53.82" cy="20.61" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="59.39" cy="22.42" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="64.46" cy="25.35" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="68.81" cy="29.26" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="72.25" cy="34.00" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="74.63" cy="39.35" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="75.85" cy="45.07" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="75.85" cy="50.93" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="74.63" cy="56.65" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="72.25" cy="62.00" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="68.81" cy="66.74" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="64.46" cy="70.65" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="59.39" cy="73.58" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="53.82" cy="75.39" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="48.00" cy="76.00" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="42.18" cy="75.39" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="36.61" cy="73.58" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="31.54" cy="70.65" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="27.19" cy="66.74" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="23.75" cy="62.00" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="21.37" cy="56.65" r="1.4" fill="#E3C489" opacity="1"/>
+  <circle cx="20.15" cy="50.93" r="0.95" fill="#8E887C" opacity="0.35"/>
+  <circle cx="20.15" cy="45.07" r="0.95" fill="#8E887C" opacity="0.35"/>
+  <circle cx="21.37" cy="39.35" r="0.95" fill="#8E887C" opacity="0.35"/>
+  <circle cx="23.75" cy="34.00" r="0.95" fill="#8E887C" opacity="0.35"/>
+  <circle cx="27.19" cy="29.26" r="0.95" fill="#8E887C" opacity="0.35"/>
+  <circle cx="31.54" cy="25.35" r="0.95" fill="#8E887C" opacity="0.35"/>
+  <circle cx="36.61" cy="22.42" r="0.95" fill="#8E887C" opacity="0.35"/>
+  <circle cx="42.18" cy="20.61" r="0.95" fill="#8E887C" opacity="0.35"/>
+</svg>

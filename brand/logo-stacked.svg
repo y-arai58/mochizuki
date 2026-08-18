@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 160" width="180" height="160" role="img" aria-label="望月">
+  <circle cx="90" cy="42" r="28" fill="#54677A"/>
+  <path d="M 90 14 A 28 28 0 0 1 90 70 A 12.319999999999999 28 0 0 1 90 14 Z" fill="#F7F0DE"/>
+  <circle cx="90" cy="42" r="28" fill="none" stroke="#2F3439" stroke-width="1.0" opacity=".5"/>
+  <text x="90" y="108" text-anchor="middle" font-family="Hiragino Mincho ProN, Yu Mincho, YuMincho, Noto Serif JP, Georgia, serif" font-size="26" letter-spacing="6" fill="#2F3439">望月</text>
+  <line x1="58" y1="124" x2="122" y2="124" stroke="#2F3439" stroke-width="1" opacity=".2"/>
+  <text x="90" y="142" text-anchor="middle" font-family="Helvetica Neue, Arial, Hiragino Sans, Yu Gothic, Noto Sans JP, sans-serif" font-size="8" letter-spacing="4.6" fill="#8E887C">MOCHIZUKI</text>
+</svg>

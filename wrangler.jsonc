@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mochizuki",
+  // 今日の日付にしてよい
+  "compatibility_date": "2026-08-18",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "observability": { "enabled": true },
+
+  // npx wrangler d1 create mochizuki の出力を貼る
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mochizuki",
+      "database_id": "PASTE_YOUR_DATABASE_ID_HERE"
+    }
+  ]
+}

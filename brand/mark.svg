@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="望月">
+  <circle cx="32" cy="32" r="26" fill="#54677A"/>
+  <path d="M 32 6 A 26 26 0 0 1 32 58 A 11.439999999999998 26 0 0 1 32 6 Z" fill="#F7F0DE"/>
+  <circle cx="32" cy="32" r="26" fill="none" stroke="#2F3439" stroke-width="1.0" opacity=".5"/>
+</svg>
